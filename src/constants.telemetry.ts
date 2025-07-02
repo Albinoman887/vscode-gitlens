@@ -66,6 +66,12 @@ export interface TelemetryEvents extends WebviewShowAbortedEvents, WebviewShownE
 	/** Sent when switching ai models */
 	'ai/switchModel': AISwitchModelEvent;
 
+	/** Sent when a user provides a thumbs up/down rating for an AI feature */
+	'ai/feedback/rating': AIFeedbackRatingEvent;
+
+	/** Sent when a user submits detailed feedback (reason/write-in) for an AI feature */
+	'ai/feedback/submitted': AIFeedbackSubmittedEvent;
+
 	/** Sent when connecting to one or more cloud-based integrations */
 	'cloudIntegrations/connecting': CloudIntegrationsConnectingEvent;
 
@@ -388,6 +394,68 @@ type AIGenerateEvent =
 export type AISwitchModelEvent =
 	| { 'model.id': string; 'model.provider.id': AIProviders; 'model.provider.name': string }
 	| { failed: true };
+
+export interface AIFeedbackRatingEvent {
+	/** The AI feature that was rated (e.g., 'explain', 'generateCommit', 'generateRebase') */
+	feature:
+		| 'explain'
+		| 'generateCommit'
+		| 'generateRebase'
+		| 'generateStash'
+		| 'generateDraft'
+		| 'generateChangelog'
+		| 'generateCreatePullRequest';
+	/** The rating provided by the user */
+	rating: 'positive' | 'negative';
+	/** Model information */
+	'model.id': string;
+	'model.provider.id': AIProviders;
+	'model.provider.name': string;
+	/** Token usage information if available */
+	'usage.promptTokens'?: number;
+	'usage.completionTokens'?: number;
+	'usage.totalTokens'?: number;
+	/** Request duration if available */
+	duration?: number;
+	/** Input/output lengths if available */
+	'input.length'?: number;
+	'output.length'?: number;
+}
+
+export interface AIFeedbackSubmittedEvent {
+	/** The AI feature that feedback was submitted for */
+	feature:
+		| 'explain'
+		| 'generateCommit'
+		| 'generateRebase'
+		| 'generateStash'
+		| 'generateDraft'
+		| 'generateChangelog'
+		| 'generateCreatePullRequest';
+	/** The original rating that led to this feedback */
+	rating: 'positive' | 'negative';
+	/** Type of feedback provided */
+	feedbackType: 'preset' | 'writeIn' | 'both';
+	/** Preset reason selected (if any) */
+	presetReason?: string;
+	/** Whether write-in feedback was provided */
+	hasWriteInFeedback: boolean;
+	/** Length of write-in feedback if provided */
+	'writeInFeedback.length'?: number;
+	/** Model information */
+	'model.id': string;
+	'model.provider.id': AIProviders;
+	'model.provider.name': string;
+	/** Token usage information if available */
+	'usage.promptTokens'?: number;
+	'usage.completionTokens'?: number;
+	'usage.totalTokens'?: number;
+	/** Request duration if available */
+	duration?: number;
+	/** Input/output lengths if available */
+	'input.length'?: number;
+	'output.length'?: number;
+}
 
 interface CloudIntegrationsConnectingEvent {
 	'integration.ids': string | undefined;
@@ -1002,6 +1070,7 @@ export type Sources =
 	| 'associateIssueWithBranch'
 	| 'cloud-patches'
 	| 'code-suggest'
+	| 'command'
 	| 'commandPalette'
 	| 'deeplink'
 	| 'editor:hover'

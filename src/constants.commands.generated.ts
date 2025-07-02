@@ -643,6 +643,8 @@ export type ContributedPaletteCommands =
 	| 'gitlens.ai.explainCommit'
 	| 'gitlens.ai.explainStash'
 	| 'gitlens.ai.explainWip'
+	| 'gitlens.ai.feedback.negative'
+	| 'gitlens.ai.feedback.positive'
 	| 'gitlens.ai.generateChangelog'
 	| 'gitlens.ai.generateCommitMessage'
 	| 'gitlens.ai.generateCommits'

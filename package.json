@@ -6193,6 +6193,18 @@
 				"icon": "$(sparkle)"
 			},
 			{
+				"command": "gitlens.ai.feedback.negative",
+				"title": "AI Feedback: Negative",
+				"category": "GitLens",
+				"icon": "$(thumbsdown)"
+			},
+			{
+				"command": "gitlens.ai.feedback.positive",
+				"title": "AI Feedback: Positive",
+				"category": "GitLens",
+				"icon": "$(thumbsup)"
+			},
+			{
 				"command": "gitlens.ai.generateChangelog",
 				"title": "Generate Changelog (Preview)...",
 				"category": "GitLens"
@@ -14117,6 +14129,16 @@
 					"command": "gitlens.regenerateMarkdownDocument",
 					"when": "resourceScheme == gitlens-markdown && activeCustomEditorId == vscode.markdown.preview.editor",
 					"group": "navigation@0"
+				},
+				{
+					"command": "gitlens.ai.feedback.positive",
+					"when": "resourceScheme == gitlens-markdown && config.gitlens.telemetry.enabled && activeCustomEditorId == vscode.markdown.preview.editor",
+					"group": "navigation@1"
+				},
+				{
+					"command": "gitlens.ai.feedback.negative",
+					"when": "resourceScheme == gitlens-markdown && config.gitlens.telemetry.enabled && activeCustomEditorId == vscode.markdown.preview.editor",
+					"group": "navigation@2"
 				},
 				{
 					"command": "gitlens.openPatch",

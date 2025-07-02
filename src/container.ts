@@ -7,6 +7,7 @@ import {
 	getSupportedRepositoryLocationProvider,
 	getSupportedWorkspacesStorageProvider,
 } from '@env/providers';
+import { AIFeedbackService } from './ai/aiFeedbackService';
 import { FileAnnotationController } from './annotations/fileAnnotationController';
 import { LineAnnotationController } from './annotations/lineAnnotationController';
 import { ActionRunners } from './api/actionRunners';
@@ -363,6 +364,14 @@ export class Container {
 			this._disposables.push((this._ai = new AIProviderService(this, this._connection)));
 		}
 		return this._ai;
+	}
+
+	private _aiFeedback: AIFeedbackService | undefined;
+	get aiFeedback(): AIFeedbackService {
+		if (this._aiFeedback == null) {
+			this._disposables.push((this._aiFeedback = new AIFeedbackService(this)));
+		}
+		return this._aiFeedback;
 	}
 
 	private _autolinks: AutolinksProvider | undefined;
