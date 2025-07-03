@@ -549,6 +549,7 @@ function generateRebaseMarkdown(
 		header: {
 			title: title,
 			aiModel: result.model.name,
+			showFeedback: Boolean(telemetryEnabled && feedbackContext),
 			subtitle: 'Explanation',
 		},
 	};
@@ -637,13 +638,6 @@ function generateRebaseMarkdown(
 
 	markdown += explanations;
 	markdown += changes;
-
-	// Add feedback note if context is provided and telemetry is enabled
-	if (feedbackContext && telemetryEnabled) {
-		markdown += '\n\n---\n\n## Feedback\n\n';
-		markdown += 'Use the 👍 and 👎 buttons in the editor toolbar to provide feedback on this AI response.\n\n';
-		markdown += '*Your feedback helps us improve our AI features.*';
-	}
 
 	// markdown += `\n\n----\n\n## Raw commits\n\n\`\`\`${escapeMarkdownCodeBlocks(JSON.stringify(commits))}\`\`\``;
 	// markdown += `\n\n----\n\n## Original Diff\n\n\`\`\`${escapeMarkdownCodeBlocks(originalDiff)}\`\`\`\n`;
