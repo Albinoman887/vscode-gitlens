@@ -14057,6 +14057,16 @@
 					"group": "navigation@-97"
 				},
 				{
+					"command": "gitlens.ai.feedback.positive",
+					"when": "gitlens:markdown:feedback:available && activeCustomEditorId == vscode.markdown.preview.editor",
+					"group": "navigation@1"
+				},
+				{
+					"command": "gitlens.ai.feedback.negative",
+					"when": "gitlens:markdown:feedback:available && activeCustomEditorId == vscode.markdown.preview.editor",
+					"group": "navigation@2"
+				},
+				{
 					"command": "gitlens.clearFileAnnotations",
 					"when": "resource in gitlens:tabs:blameable && (gitlens:window:annotated == computed || (resource in gitlens:tabs:annotated && resource not in gitlens:tabs:annotated:computing)) && config.gitlens.menus.editorGroup.blame",
 					"group": "navigation@100"
@@ -14129,16 +14139,6 @@
 					"command": "gitlens.regenerateMarkdownDocument",
 					"when": "resourceScheme == gitlens-markdown && activeCustomEditorId == vscode.markdown.preview.editor",
 					"group": "navigation@0"
-				},
-				{
-					"command": "gitlens.ai.feedback.positive",
-					"when": "resourceScheme == gitlens-markdown && config.gitlens.telemetry.enabled && activeCustomEditorId == vscode.markdown.preview.editor",
-					"group": "navigation@1"
-				},
-				{
-					"command": "gitlens.ai.feedback.negative",
-					"when": "resourceScheme == gitlens-markdown && config.gitlens.telemetry.enabled && activeCustomEditorId == vscode.markdown.preview.editor",
-					"group": "navigation@2"
 				},
 				{
 					"command": "gitlens.openPatch",

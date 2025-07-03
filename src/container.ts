@@ -64,6 +64,7 @@ import { isWalkthroughSupported, WalkthroughStateProvider } from './telemetry/wa
 import { GitTerminalLinkProvider } from './terminal/linkProvider';
 import { GitDocumentTracker } from './trackers/documentTracker';
 import { LineTracker } from './trackers/lineTracker';
+import { MarkdownFeedbackTracker } from './trackers/markdownFeedbackTracker';
 import { DeepLinkService } from './uris/deepLinks/deepLinkService';
 import { UriService } from './uris/uriService';
 import { ViewFileDecorationProvider } from './views/viewDecorationProvider';
@@ -219,6 +220,7 @@ export class Container {
 		this._disposables.push((this._actionRunners = new ActionRunners(this)));
 		this._disposables.push((this._documentTracker = new GitDocumentTracker(this)));
 		this._disposables.push((this._lineTracker = new LineTracker(this, this._documentTracker)));
+		this._disposables.push(new MarkdownFeedbackTracker(this));
 		this._disposables.push((this._keyboard = new Keyboard()));
 		this._disposables.push((this._vsls = new VslsController(this)));
 		this._disposables.push((this._eventBus = new EventBus()));

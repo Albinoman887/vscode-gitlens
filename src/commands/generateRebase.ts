@@ -554,21 +554,25 @@ function generateRebaseMarkdown(
 		},
 	};
 
-	// Add feedback context and commands to toolbar if telemetry is enabled
-	if (feedbackContext && telemetryEnabled) {
+	// Always store feedback context if available, but only show UI when telemetry is enabled
+	if (feedbackContext) {
 		metadata.feedbackContext = feedbackContext as unknown as Record<string, unknown>;
-		metadata.commands = [
-			{
-				label: 'Helpful',
-				name: 'gitlens.ai.feedback.positive',
-				icon: 'thumbsup',
-			},
-			{
-				label: 'Not helpful',
-				name: 'gitlens.ai.feedback.negative',
-				icon: 'thumbsdown',
-			},
-		];
+
+		// Only add commands to toolbar if telemetry is enabled
+		if (telemetryEnabled) {
+			metadata.commands = [
+				{
+					label: 'Helpful',
+					name: 'gitlens.ai.feedback.positive',
+					icon: 'thumbsup',
+				},
+				{
+					label: 'Not helpful',
+					name: 'gitlens.ai.feedback.negative',
+					icon: 'thumbsdown',
+				},
+			];
+		}
 	}
 
 	let markdown = '';

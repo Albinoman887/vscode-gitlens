@@ -150,7 +150,7 @@
 			"menus": {
 				"editor/title": [
 					{
-						"when": "resourceScheme == gitlens-markdown && config.gitlens.telemetry.enabled && activeCustomEditorId == vscode.markdown.preview.editor",
+						"when": "gitlens:markdown:feedback:available && activeCustomEditorId == vscode.markdown.preview.editor",
 						"group": "navigation",
 						"order": 2
 					}
@@ -164,7 +164,7 @@
 			"menus": {
 				"editor/title": [
 					{
-						"when": "resourceScheme == gitlens-markdown && config.gitlens.telemetry.enabled && activeCustomEditorId == vscode.markdown.preview.editor",
+						"when": "gitlens:markdown:feedback:available && activeCustomEditorId == vscode.markdown.preview.editor",
 						"group": "navigation",
 						"order": 1
 					}

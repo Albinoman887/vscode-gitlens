@@ -120,7 +120,7 @@ export function getMarkdownHeaderContent(metadata: MarkdownContentMetadata): str
 	}
 
 	// Add feedback note if context is provided and telemetry is enabled
-	if (metadata.feedbackContext) {
+	if (metadata.header.showFeedback) {
 		headerContent += '\n\n';
 		headerContent += 'Use the 👍 and 👎 buttons in the editor toolbar to provide feedback on this AI response. ';
 		headerContent += '*Your feedback helps us improve our AI features.*';

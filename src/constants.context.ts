@@ -61,6 +61,7 @@ export type ContextKeys = {
 	'gitlens:vsls': boolean | 'host' | 'guest';
 	'gitlens:window:annotated': AnnotationStatus;
 	'gitlens:walkthroughSupported': boolean;
+	'gitlens:markdown:feedback:available': boolean;
 } & Record<`gitlens:action:${string}`, number> &
 	Record<`gitlens:feature:unsupported:${Features}`, boolean> &
 	Record<`gitlens:key:${Keys}`, boolean> &
