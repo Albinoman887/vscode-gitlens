@@ -437,7 +437,7 @@ export class GitProviderService implements Disposable {
 				}
 
 				if (e.changed(RepositoryChange.Remotes, RepositoryChangeComparisonMode.Any)) {
-					const visibilityInfo = this.getVisibilityInfoFromCache(e.repository.path);
+					const visibilityInfo = await this.getVisibilityInfoFromCache(e.repository.path);
 					if (visibilityInfo != null) {
 						await this.checkVisibilityCachedRemotes(e.repository.path, visibilityInfo, () =>
 							provider.remotes.getRemotes(e.repository.path),
