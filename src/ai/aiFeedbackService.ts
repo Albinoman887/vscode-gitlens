@@ -1,10 +1,10 @@
 import type { Disposable } from 'vscode';
-import type { AIFeedbackRatingEvent, AIFeedbackSubmittedEvent, Source } from '../constants.telemetry';
+import type { AIFeedbackEvent, Source } from '../constants.telemetry';
 import type { Container } from '../container';
 import { debug, log } from '../system/decorators/log';
 
 export interface AIFeedbackContext {
-	feature: AIFeedbackRatingEvent['feature'];
+	feature: AIFeedbackEvent['feature'];
 	model: {
 		id: string;
 		providerId: string;
@@ -28,26 +28,7 @@ export class AIFeedbackService implements Disposable {
 	}
 
 	@log()
-	sendRatingEvent(context: AIFeedbackContext, rating: 'positive' | 'negative', source: Source): void {
-		const eventData: AIFeedbackRatingEvent = {
-			feature: context.feature,
-			rating: rating,
-			'model.id': context.model.id,
-			'model.provider.id': context.model.providerId as any,
-			'model.provider.name': context.model.providerName,
-			'usage.promptTokens': context.usage?.promptTokens,
-			'usage.completionTokens': context.usage?.completionTokens,
-			'usage.totalTokens': context.usage?.totalTokens,
-			duration: context.duration,
-			'input.length': context.inputLength,
-			'output.length': context.outputLength,
-		};
-
-		this.container.telemetry.sendEvent('ai/feedback/rating', eventData, source);
-	}
-
-	@log()
-	sendFeedbackSubmittedEvent(
+	sendFeedbackEvent(
 		context: AIFeedbackContext,
 		rating: 'positive' | 'negative',
 		feedback: {
@@ -68,7 +49,7 @@ export class AIFeedbackService implements Disposable {
 			feedbackType = 'writeIn';
 		}
 
-		const eventData: AIFeedbackSubmittedEvent = {
+		const eventData: AIFeedbackEvent = {
 			feature: context.feature,
 			rating: rating,
 			feedbackType: feedbackType,
@@ -86,7 +67,7 @@ export class AIFeedbackService implements Disposable {
 			'output.length': context.outputLength,
 		};
 
-		this.container.telemetry.sendEvent('ai/feedback/submitted', eventData, source);
+		this.container.telemetry.sendEvent('ai/feedback', eventData, source);
 	}
 
 	/**
@@ -94,7 +75,7 @@ export class AIFeedbackService implements Disposable {
 	 */
 	@debug()
 	createFeedbackContext(
-		feature: AIFeedbackRatingEvent['feature'],
+		feature: AIFeedbackEvent['feature'],
 		model: {
 			id: string;
 			providerId: string;
@@ -126,7 +107,7 @@ export class AIFeedbackService implements Disposable {
 	 */
 	@debug()
 	createFeedbackContextFromTelemetry(
-		feature: AIFeedbackRatingEvent['feature'],
+		feature: AIFeedbackEvent['feature'],
 		telemetryData: {
 			'model.id': string;
 			'model.provider.id': string;

@@ -139,35 +139,9 @@
 }
 ```
 
-### ai/feedback/rating
+### ai/feedback
 
-> Sent when a user provides a thumbs up/down rating for an AI feature
-
-```typescript
-{
-  // Request duration if available
-  'duration': number,
-  // The AI feature that was rated (e.g., 'explain', 'generateCommit', 'generateRebase')
-  'feature': 'explain' | 'generateCommit' | 'generateRebase' | 'generateStash' | 'generateDraft' | 'generateChangelog' | 'generateCreatePullRequest',
-  // Input/output lengths if available
-  'input.length': number,
-  // Model information
-  'model.id': string,
-  'model.provider.id': 'anthropic' | 'azure' | 'deepseek' | 'gemini' | 'github' | 'gitkraken' | 'huggingface' | 'mistral' | 'ollama' | 'openai' | 'openaicompatible' | 'openrouter' | 'vscode' | 'xai',
-  'model.provider.name': string,
-  'output.length': number,
-  // The rating provided by the user
-  'rating': 'positive' | 'negative',
-  'usage.completionTokens': number,
-  // Token usage information if available
-  'usage.promptTokens': number,
-  'usage.totalTokens': number
-}
-```
-
-### ai/feedback/submitted
-
-> Sent when a user submits detailed feedback (reason/write-in) for an AI feature
+> Sent when a user provides feedback (rating and optional details) for an AI feature
 
 ```typescript
 {

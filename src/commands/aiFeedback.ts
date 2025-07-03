@@ -30,7 +30,7 @@ export class AIFeedbackPositiveCommand extends ActiveEditorCommand {
 
 		try {
 			// For positive feedback, just send the event immediately without showing any form
-			this.container.aiFeedback.sendFeedbackSubmittedEvent(
+			this.container.aiFeedback.sendFeedbackEvent(
 				context,
 				'positive',
 				{
@@ -142,7 +142,7 @@ async function showDetailedFeedbackForm(container: Container, context: AIFeedbac
 	});
 
 	// Always send feedback submission telemetry for negative feedback
-	container.aiFeedback.sendFeedbackSubmittedEvent(
+	container.aiFeedback.sendFeedbackEvent(
 		context,
 		'negative',
 		{
