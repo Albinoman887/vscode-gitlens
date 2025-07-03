@@ -1,4 +1,4 @@
-import type { MessageItem, TextEditor, Uri } from 'vscode';
+import type { TextEditor, Uri } from 'vscode';
 import { window } from 'vscode';
 import type { AIFeedbackContext } from '../ai/aiFeedbackService';
 import { Schemes } from '../constants';
@@ -20,7 +20,7 @@ export class AIFeedbackPositiveCommand extends ActiveEditorCommand {
 		super('gitlens.ai.feedback.positive');
 	}
 
-	async execute(editor?: TextEditor, uri?: Uri, ...args: any[]): Promise<void> {
+	execute(editor?: TextEditor, uri?: Uri, ...args: any[]): void {
 		// Check if first arg is a valid AIFeedbackContext (direct call scenario)
 		// Otherwise, try to extract from active editor (toolbar scenario)
 		const isValidContext =
@@ -29,18 +29,21 @@ export class AIFeedbackPositiveCommand extends ActiveEditorCommand {
 		if (!context) return;
 
 		try {
-			// Send positive rating telemetry
-			this.container.aiFeedback.sendRatingEvent(context, 'positive', { source: 'command' });
+			// For positive feedback, just send the event immediately without showing any form
+			this.container.aiFeedback.sendFeedbackSubmittedEvent(
+				context,
+				'positive',
+				{
+					presetReasons: [],
+					writeInFeedback: '',
+				},
+				{ source: 'command' },
+			);
 
-			// Show optional feedback form
-			await this.showFeedbackForm(context, 'positive');
+			void window.showInformationMessage('Thank you for your feedback!');
 		} catch (ex) {
 			Logger.error(ex, 'AIFeedbackPositiveCommand', 'execute');
 		}
-	}
-
-	private async showFeedbackForm(context: AIFeedbackContext, rating: 'positive' | 'negative'): Promise<void> {
-		await showFeedbackForm(this.container, context, rating);
 	}
 
 	private extractFeedbackContext(editor?: TextEditor, uri?: Uri): AIFeedbackContext | undefined {
@@ -81,18 +84,11 @@ export class AIFeedbackNegativeCommand extends ActiveEditorCommand {
 		if (!context) return;
 
 		try {
-			// Send negative rating telemetry
-			this.container.aiFeedback.sendRatingEvent(context, 'negative', { source: 'command' });
-
-			// Show feedback form
-			await this.showFeedbackForm(context, 'negative');
+			// For negative feedback, always show the detailed form directly
+			await showDetailedFeedbackForm(this.container, context);
 		} catch (ex) {
 			Logger.error(ex, 'AIFeedbackNegativeCommand', 'execute');
 		}
-	}
-
-	private async showFeedbackForm(context: AIFeedbackContext, rating: 'positive' | 'negative'): Promise<void> {
-		await showFeedbackForm(this.container, context, rating);
 	}
 
 	private extractFeedbackContext(editor?: TextEditor, uri?: Uri): AIFeedbackContext | undefined {
@@ -118,40 +114,7 @@ export class AIFeedbackNegativeCommand extends ActiveEditorCommand {
 	}
 }
 
-// Shared feedback form logic
-async function showFeedbackForm(
-	container: Container,
-	context: AIFeedbackContext,
-	rating: 'positive' | 'negative',
-): Promise<void> {
-	const submitFeedbackItem: MessageItem = { title: 'Tell us more' };
-	const skipItem: MessageItem = { title: 'Skip', isCloseAffordance: true };
-
-	const result = await window.showInformationMessage(
-		`Thank you for your feedback! Would you like to tell us more about what ${rating === 'positive' ? 'worked well' : 'could be improved'}?`,
-		{ modal: false },
-		submitFeedbackItem,
-		skipItem,
-	);
-
-	if (result === submitFeedbackItem) {
-		await showDetailedFeedbackForm(container, context, rating);
-	}
-}
-
-async function showDetailedFeedbackForm(
-	container: Container,
-	context: AIFeedbackContext,
-	rating: 'positive' | 'negative',
-): Promise<void> {
-	const positiveReasons = [
-		'Accurate and helpful response',
-		'Saved me time',
-		'Easy to understand',
-		'Good code quality',
-		'Appropriate level of detail',
-	];
-
+async function showDetailedFeedbackForm(container: Container, context: AIFeedbackContext): Promise<void> {
 	const negativeReasons = [
 		'Inaccurate or incorrect response',
 		'Too generic or not specific enough',
@@ -161,13 +124,11 @@ async function showDetailedFeedbackForm(
 		'Not relevant to my needs',
 	];
 
-	const reasons = rating === 'positive' ? positiveReasons : negativeReasons;
-
 	// Show quick pick for preset reasons
 	const selectedReasons = await window.showQuickPick(
-		reasons.map(reason => ({ label: reason, picked: false })),
+		negativeReasons.map(reason => ({ label: reason, picked: false })),
 		{
-			title: `What specifically ${rating === 'positive' ? 'worked well' : 'could be improved'}?`,
+			title: 'What specifically could be improved?',
 			canPickMany: true,
 			placeHolder: 'Select all that apply (optional)',
 		},
@@ -180,18 +141,16 @@ async function showDetailedFeedbackForm(
 		prompt: 'Your feedback helps us improve our AI features',
 	});
 
-	// Send feedback submission telemetry if any feedback was provided
-	if ((selectedReasons && selectedReasons.length > 0) || (writeInFeedback && writeInFeedback.trim().length > 0)) {
-		container.aiFeedback.sendFeedbackSubmittedEvent(
-			context,
-			rating,
-			{
-				presetReasons: selectedReasons?.map(r => r.label),
-				writeInFeedback: writeInFeedback,
-			},
-			{ source: 'command' },
-		);
+	// Always send feedback submission telemetry for negative feedback
+	container.aiFeedback.sendFeedbackSubmittedEvent(
+		context,
+		'negative',
+		{
+			presetReasons: selectedReasons?.map(r => r.label),
+			writeInFeedback: writeInFeedback,
+		},
+		{ source: 'command' },
+	);
 
-		void window.showInformationMessage('Thank you for your feedback!');
-	}
+	void window.showInformationMessage('Thank you for your feedback!');
 }
