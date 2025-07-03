@@ -172,19 +172,32 @@ function createOrUpdateAvatar(
 	return avatar;
 }
 
+let avatarCachePromise: Promise<void> | undefined;
+
 function ensureAvatarCache(cache: Map<string, Avatar> | undefined): asserts cache is Map<string, Avatar> {
 	if (cache == null) {
-		const avatars: [string, Avatar][] | undefined = Container.instance.storage
-			.get('avatars')
-			?.map<[string, Avatar]>(([key, avatar]) => [
-				key,
-				{
-					uri: Uri.parse(avatar.uri),
-					timestamp: avatar.timestamp,
-					retries: 0,
-				},
-			]);
-		avatarCache = new Map<string, Avatar>(avatars);
+		avatarCache = new Map<string, Avatar>();
+
+		// Load avatars asynchronously in the background
+		if (avatarCachePromise == null) {
+			avatarCachePromise = Container.instance.storage.getAsync('avatars').then(storedAvatars => {
+				const avatars: [string, Avatar][] | undefined = storedAvatars?.map<[string, Avatar]>(([key, avatar]) => [
+					key,
+					{
+						uri: Uri.parse(avatar.uri),
+						timestamp: avatar.timestamp,
+						retries: 0,
+					},
+				]);
+				if (avatars && avatarCache) {
+					for (const [key, avatar] of avatars) {
+						avatarCache.set(key, avatar);
+					}
+				}
+			}).catch(() => {
+				// If loading fails, start with empty cache
+			});
+		}
 	}
 }
 

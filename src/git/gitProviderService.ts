@@ -819,10 +819,10 @@ export class GitProviderService implements Disposable {
 	private _reposVisibilityCache: RepositoriesVisibility | undefined;
 	private _repoVisibilityCache: Map<string, RepositoryVisibilityInfo> | undefined;
 
-	private ensureRepoVisibilityCache(): void {
+	private async ensureRepoVisibilityCache(): Promise<void> {
 		if (this._repoVisibilityCache == null) {
-			const repoVisibility: [string, RepositoryVisibilityInfo][] | undefined = this.container.storage
-				.get('repoVisibility')
+			const repoVisibility: [string, RepositoryVisibilityInfo][] | undefined = (await this.container.storage
+				.getAsync('repoVisibility'))
 				?.map<[string, RepositoryVisibilityInfo]>(([key, visibilityInfo]) => [
 					key,
 					{
@@ -852,8 +852,8 @@ export class GitProviderService implements Disposable {
 	}
 
 	@debug<GitProviderService['getVisibilityInfoFromCache']>({ exit: r => `returned ${r?.visibility}` })
-	private getVisibilityInfoFromCache(key: string): RepositoryVisibilityInfo | undefined {
-		this.ensureRepoVisibilityCache();
+	private async getVisibilityInfoFromCache(key: string): Promise<RepositoryVisibilityInfo | undefined> {
+		await this.ensureRepoVisibilityCache();
 		const visibilityInfo = this._repoVisibilityCache?.get(key);
 		if (visibilityInfo == null) return undefined;
 
@@ -890,8 +890,8 @@ export class GitProviderService implements Disposable {
 		return true;
 	}
 
-	private updateVisibilityCache(key: string, visibilityInfo: RepositoryVisibilityInfo): void {
-		this.ensureRepoVisibilityCache();
+	private async updateVisibilityCache(key: string, visibilityInfo: RepositoryVisibilityInfo): Promise<void> {
+		await this.ensureRepoVisibilityCache();
 		this._repoVisibilityCache?.set(key, visibilityInfo);
 		void this.container.storage.store('repoVisibility', Array.from(this._repoVisibilityCache!.entries())).catch();
 	}
@@ -928,7 +928,7 @@ export class GitProviderService implements Disposable {
 
 		const { path: cacheKey } = this.getProvider(repoPath);
 
-		let visibility = this.getVisibilityInfoFromCache(cacheKey)?.visibility;
+		let visibility = (await this.getVisibilityInfoFromCache(cacheKey))?.visibility;
 		if (visibility == null) {
 			visibility = await this.visibilityCore(repoPath);
 			if (this.container.telemetry.enabled) {
@@ -957,7 +957,7 @@ export class GitProviderService implements Disposable {
 			repoPath: string | Uri,
 		): Promise<RepositoryVisibility> {
 			const { provider, path } = this.getProvider(repoPath);
-			const visibilityInfo = this.getVisibilityInfoFromCache(path);
+			const visibilityInfo = await this.getVisibilityInfoFromCache(path);
 			if (
 				visibilityInfo == null ||
 				!(await this.checkVisibilityCachedRemotes(path, visibilityInfo, () =>
@@ -966,7 +966,7 @@ export class GitProviderService implements Disposable {
 			) {
 				const [visibility, remotesHash] = await provider.visibility(path);
 				if (visibility !== 'local') {
-					this.updateVisibilityCache(path, {
+					await this.updateVisibilityCache(path, {
 						visibility: visibility,
 						timestamp: Date.now(),
 						remotesHash: remotesHash,
