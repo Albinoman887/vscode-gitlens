@@ -9,6 +9,7 @@ import type {
 	WorkspaceStorage,
 } from '../../constants.storage';
 import { debug } from '../decorators/log';
+import { FileBasedLargeDataStorageManager } from './largeDataStorage';
 
 type GlobalStorageKeys = keyof (GlobalStorage & DeprecatedGlobalStorage);
 type WorkspaceStorageKeys = keyof (WorkspaceStorage & DeprecatedWorkspaceStorage);
@@ -41,12 +42,19 @@ export class Storage implements Disposable {
 	}
 
 	private readonly _disposable: Disposable;
+	private readonly _largeDataManager: FileBasedLargeDataStorageManager;
+	
 	constructor(private readonly context: ExtensionContext) {
+		this._largeDataManager = new FileBasedLargeDataStorageManager(context);
 		this._disposable = Disposable.from(
 			this._onDidChange,
 			this._onDidChangeSecrets,
+			this._largeDataManager,
 			this.context.secrets.onDidChange(e => this._onDidChangeSecrets.fire(e)),
 		);
+		
+		// Migrate existing large data on startup
+		void this._largeDataManager.migrateExistingData();
 	}
 
 	dispose(): void {
@@ -59,12 +67,43 @@ export class Storage implements Disposable {
 	get<T extends keyof GlobalStorage>(key: T, defaultValue: GlobalStorage[T]): GlobalStorage[T];
 	@debug({ logThreshold: 50 })
 	get(key: GlobalStorageKeys, defaultValue?: unknown): unknown | undefined {
+		if (this.isLargeDataKey(key)) {
+			// For large data keys, return the default value immediately and log a warning
+			// This encourages migration to getAsync for large data
+			console.warn(`[GitLens] Large data key '${key}' accessed synchronously. Use getAsync() instead.`);
+			return defaultValue;
+		}
+		
 		return this.context.globalState.get(`${extensionPrefix}:${key}`, defaultValue);
+	}
+
+	/**
+	 * Async version of get for large data keys that might be stored in files
+	 */
+	@debug({ logThreshold: 50 })
+	async getAsync<T extends keyof GlobalStorage>(key: T): Promise<GlobalStorage[T] | undefined>;
+	async getAsync<T extends keyof GlobalStorage>(key: T, defaultValue: GlobalStorage[T]): Promise<GlobalStorage[T]>;
+	async getAsync(key: GlobalStorageKeys, defaultValue?: unknown): Promise<unknown | undefined> {
+		if (this.isLargeDataKey(key)) {
+			const value = await this._largeDataManager.get(key as keyof GlobalStorage);
+			return value ?? defaultValue;
+		}
+		
+		return this.context.globalState.get(`${extensionPrefix}:${key}`, defaultValue);
+	}
+
+	private isLargeDataKey(key: string): key is keyof GlobalStorage {
+		const largeDataKeys: (keyof GlobalStorage)[] = ['avatars', 'repoVisibility'];
+		return largeDataKeys.includes(key as keyof GlobalStorage);
 	}
 
 	@debug({ logThreshold: 250 })
 	async delete(key: GlobalStorageKeys): Promise<void> {
-		await this.context.globalState.update(`${extensionPrefix}:${key}`, undefined);
+		if (this.isLargeDataKey(key)) {
+			await this._largeDataManager.delete(key as keyof GlobalStorage);
+		} else {
+			await this.context.globalState.update(`${extensionPrefix}:${key}`, undefined);
+		}
 		this._onDidChange.fire({ keys: [key], workspace: false });
 	}
 
@@ -102,7 +141,11 @@ export class Storage implements Disposable {
 
 	@debug({ args: { 1: false }, logThreshold: 250 })
 	async store<T extends keyof GlobalStorage>(key: T, value: GlobalStorage[T] | undefined): Promise<void> {
-		await this.context.globalState.update(`${extensionPrefix}:${key}`, value);
+		if (this.isLargeDataKey(key)) {
+			await this._largeDataManager.store(key, value);
+		} else {
+			await this.context.globalState.update(`${extensionPrefix}:${key}`, value);
+		}
 		this._onDidChange.fire({ keys: [key], workspace: false });
 	}
 
